@@ -24,7 +24,7 @@ Run the server:
   ```json
   {
     "lang_v": "0.1.0",
-    "b64_source": "0LTRgNGD0LrRgCgi0J/RgNC40LLRltGCLCDQodCy0ZbRgtC1IDEhIik7"
+    "source_code": "друкр(\"Привіт, Світе!\");"
   }
   ```
   Output:
@@ -32,11 +32,6 @@ Run the server:
   {
     "job_id": "<uuid>"
   }
-  ```
-
-  Source code which is base64-encoded:
-  ```
-  друкр("Привіт, Світе 1!");
   ```
 
 * `[GET] /api/v1/job/<uuid>`

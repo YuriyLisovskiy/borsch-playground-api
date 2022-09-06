@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/base64"
 	"errors"
 	"net/http"
 
@@ -28,20 +27,15 @@ func (a *Application) runHandler(c *gin.Context) (int, interface{}, error) {
 		return http.StatusBadRequest, nil, errors.New("language version does not exist")
 	}
 
-	if len(form.B64Source) == 0 {
+	if len(form.SourceCode) == 0 {
 		return http.StatusBadRequest, nil, errors.New("code is not provided or empty")
-	}
-
-	code, err := base64.StdEncoding.DecodeString(form.B64Source)
-	if err != nil {
-		return http.StatusBadRequest, nil, err
 	}
 
 	job := &models.JobDbModel{
 		Model: models.Model{
 			ID: uuid.New().String(),
 		},
-		Code:     string(code),
+		Code:     form.SourceCode,
 		Outputs:  []models.JobOutputRowDbModel{},
 		ExitCode: nil,
 	}
