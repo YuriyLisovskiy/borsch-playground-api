@@ -14,8 +14,12 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Other
-.idea/
-
 # Local storages
 db.sqlite3
+
+# Configurations
+settings.local.json
+
+# Other
+.idea/
+.DS_Store
