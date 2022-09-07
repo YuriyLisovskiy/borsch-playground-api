@@ -17,12 +17,13 @@ import (
 )
 
 type Settings struct {
-	Debug              bool          `json:"debug"`
-	ShutdownTimeoutSec time.Duration `json:"shutdown_timeout_sec"`
-	BorschVersions     []string      `json:"borsch_versions"`
-	Runner             *Runner       `json:"runner"`
-	Queue              *Queue        `json:"queue"`
-	Database           *Database     `json:"database"`
+	Debug               bool          `json:"debug"`
+	ShutdownTimeoutSec  time.Duration `json:"shutdown_timeout_sec"`
+	BorschVersions      []string      `json:"borsch_versions"`
+	ApiDocumentationUrl string        `json:"api_documentation_url"`
+	Runner              *Runner       `json:"runner"`
+	Queue               *Queue        `json:"queue"`
+	Database            *Database     `json:"database"`
 }
 
 func Load() (*Settings, error) {

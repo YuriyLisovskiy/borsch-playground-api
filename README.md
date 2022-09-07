@@ -13,7 +13,7 @@ cd ./bin
 
 Migrate the database:
 ```shell
-./borschplayground --address 127.0.0.1:8080
+./borschplayground migrate
 ```
 
 Run the server:

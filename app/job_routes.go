@@ -50,12 +50,8 @@ func (a *Application) getJobOutputsHandler(c *gin.Context) (int, interface{}, er
 	offset, err := strconv.Atoi(qOffset)
 	if err != nil {
 		jObj := map[string]interface{}{
-			"message": "Validation Failed",
-			"error": map[string]string{
-				"resource": "Job Outputs",
-				"value":    qOffset,
-			},
-			"documentation_url": "TODO:",
+			"message":           "Offset is not an integer value",
+			"documentation_url": a.settings.ApiDocumentationUrl,
 		}
 		return http.StatusBadRequest, jObj, nil
 	}
