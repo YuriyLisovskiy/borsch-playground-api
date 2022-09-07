@@ -1,0 +1,9 @@
+Dockerfile*
+.*ignore
+
+# Development files
+db.sqlite3
+settings.json
+
+# Documentation and other stuff
+swagger/
