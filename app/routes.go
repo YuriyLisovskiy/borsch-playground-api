@@ -1,3 +1,11 @@
+/*
+ * Borsch Playground API
+ *
+ * Copyright (C) 2022 Yuriy Lisovskiy - All Rights Reserved
+ * You may use, distribute and modify this code under the
+ * terms of the MIT license.
+ */
+
 package app
 
 import (
@@ -10,11 +18,15 @@ func (a *Application) addV1Routes(r *gin.Engine) {
 	apiV1 := r.Group("/api/v1")
 
 	apiV1.GET("/ping", jsonHandler(pingHandler))
+	apiV1.GET("/lang/versions", jsonHandler(a.getLanguageVersionsHandler))
 
-	a.addRunRoutes(apiV1)
 	a.addJobRoutes(apiV1)
 }
 
-func pingHandler(c *gin.Context) (int, interface{}, error) {
+func (a *Application) getLanguageVersionsHandler(c *gin.Context) (int, interface{}, error) {
+	return http.StatusOK, a.settings.BorschVersions, nil
+}
+
+func pingHandler(*gin.Context) (int, interface{}, error) {
 	return http.StatusOK, gin.H{"message": "pong"}, nil
 }

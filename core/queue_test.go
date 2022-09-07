@@ -1,3 +1,11 @@
+/*
+ * Borsch Playground API
+ *
+ * Copyright (C) 2022 Yuriy Lisovskiy - All Rights Reserved
+ * You may use, distribute and modify this code under the
+ * terms of the MIT license.
+ */
+
 package core
 
 import (
@@ -36,19 +44,15 @@ func TestQueue_Enqueue_Success(t *testing.T) {
 	q := NewQueue(1)
 	_ = q.Open(1)
 	defer q.CloseAndWait(0 * time.Second)
-	ok, err := q.Enqueue(&jobMock{})
+	err := q.Enqueue(&jobMock{})
 	if err != nil {
-		t.Errorf("Queue is not opened: %v", err)
-	}
-
-	if !ok {
-		t.Error("Unable to enqueue job")
+		t.Errorf("Queue generated an error: %v", err)
 	}
 }
 
 func TestQueue_Enqueue_QueueIsNotOpened(t *testing.T) {
 	q := NewQueue(1)
-	_, err := q.Enqueue(&jobMock{})
+	err := q.Enqueue(&jobMock{})
 	if err == nil {
 		t.Error("Job was enqueued by mistake")
 	}
@@ -58,8 +62,8 @@ func TestQueue_Enqueue_QueueIsFull(t *testing.T) {
 	q := NewQueue(0)
 	_ = q.Open(1)
 	defer q.CloseAndWait(0 * time.Second)
-	ok, _ := q.Enqueue(&jobMock{})
-	if ok {
+	err := q.Enqueue(&jobMock{})
+	if err == nil {
 		t.Error("Job was enqueued by mistake")
 	}
 }
@@ -81,13 +85,9 @@ func TestQueue_Timings(t *testing.T) {
 
 	start := time.Now()
 	for i := 0; i < workers; i++ {
-		ok, err := q.Enqueue(&benchJob{sleepTimeInSec: expectedTimeInSec})
+		err := q.Enqueue(&benchJob{sleepTimeInSec: expectedTimeInSec})
 		if err != nil {
 			fmt.Println(fmt.Sprintf("err: %v, %d", err, i))
-		}
-
-		if !ok {
-			fmt.Printf("not ok, %d\n", i)
 		}
 	}
 

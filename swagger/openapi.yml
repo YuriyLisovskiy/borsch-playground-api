@@ -1,0 +1,233 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/YURALISOVSKIY98/BorschPlaygroundService/1.0.0
+info:
+  description: This API allows to execute code written in Borsch programming language without installing the interpreter on the local machine.
+  contact:
+    name: API Issues
+    url: https://github.com/YuriyLisovskiy/borsch-playground-service/issues
+  version: "1.0.0"
+  title: Borsch Playground API
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+tags:
+  - name: jobs
+    description: Operations for retrieving jobs' information
+paths:
+  /api/v1/jobs/{id}:
+    get:
+      tags:
+        - jobs
+      summary: Get job
+      description: "Returns job's info without outputs."
+      operationId: getJob
+      parameters:
+        - in: path
+          name: id
+          description: The job ID
+          required: true
+          schema:
+            type: string
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+      responses:
+        '200':
+          description: Search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobItem'
+        '404':
+          description: Job does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobNotFoundResponse'
+  /api/v1/jobs/{id}/outputs:
+    get:
+      tags:
+        - jobs
+      summary: Get job's outputs
+      operationId: getJobOutputs
+      parameters:
+        - in: path
+          name: id
+          description: The job ID
+          required: true
+          schema:
+            type: string
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        - in: query
+          name: offset
+          description: Skip first n rows
+          required: false
+          schema:
+            type: number
+            format: int64
+            minimum: 0
+          example: 7
+      responses:
+        '200':
+          description: Search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfJobOutputs'
+        '400':
+          description: Bad input parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documentation_url:
+                    type: string
+                    # example: 'TODO:'
+                  message:
+                    type: string
+                    example: Offset is not an integer value
+        '404':
+          description: job does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobNotFoundResponse'
+  /api/v1/jobs:
+    post:
+      tags:
+        - jobs
+      summary: Create a new job
+      description: "Enqueues a new job which will execute the source code."
+      operationId: createJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobInput'
+      responses:
+        '201':
+          description: Job was created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                    format: uuid
+                    example: 1f9f329f-300a-43f4-8c7d-0889452e1d11
+        '400':
+          description: Bad input parameters
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      documentation_url:
+                        type: string
+                      message:
+                        type: string
+                        example: Language version does not exist
+                  - type: object
+                    properties:
+                      documentation_url:
+                        type: string
+                      message:
+                        type: string
+                        example: code is not provided or empty
+        '503':
+          description: Unable to enqueue job
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Service temporary is unavailable, try again later
+  /api/v1/lang/versions:
+    get:
+      summary: Get available versions of language
+      description: "Returns a list of available versions of Borsch language."
+      operationId: getLanguages
+      responses:
+        '200':
+          description: Array of language versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: SemVer
+                  example: 0.1.0
+components:
+  schemas:
+    JobItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        created_at:
+          type: string
+          format: date-time
+          example: 2022-09-05 00:08:29.54415+03:00
+        source_code:
+          type: string
+          example: |-
+            друкр("Привіт, Світе!");
+        exit_code:
+          type: number
+          format: int64
+          nullable: true
+          example: 0
+        outputs_url:
+          type: string
+          format: link
+          example: http://example.com/api/v1/job/d290f1ee-6c54-4b01-90e6-d701748f0851/outputs
+    ArrayOfJobOutputs:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+            format: int64
+            example: 47
+          created_at:
+            type: string
+            format: date-time
+            example: 2022-09-06T16:50:30.469195+03:00
+          job_id:
+            type: string
+            format: uuid
+            example: d290f1ee-6c54-4b01-90e6-d701748f0851
+          text:
+            type: string
+            example: Привіт, Світе!
+    JobNotFoundResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: job not found
+    CreateJobInput:
+      type: object
+      required:
+        - lang_v
+        - source_code
+      properties:
+        lang_v:
+          type: string
+          format: SemVer
+          example: 0.1.0
+        source_code:
+          type: string
+          example: |-
+            друкр("Привіт, Світе!");

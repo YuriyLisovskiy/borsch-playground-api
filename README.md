@@ -1,4 +1,8 @@
 ## Borsch Playground Service
+
+This API allows to execute code written in Borsch programming language
+without installing the interpreter on the local machine.
+
 Build and set up the application:
 ```shell
 mkdir "bin"
@@ -18,21 +22,4 @@ Run the server:
 ```
 
 ### API
-* `[POST] /api/v1/run`
-  
-  Input:
-  ```json
-  {
-    "lang_v": "0.1.0",
-    "source_code": "друкр(\"Привіт, Світе!\");"
-  }
-  ```
-  Output:
-  ```json
-  {
-    "job_id": "<uuid>"
-  }
-  ```
-
-* `[GET] /api/v1/job/<uuid>`
-* `[GET] /api/v1/job/<uuid>/output`
+Check out the [documentation](https://app.swaggerhub.com/apis-docs/YURALISOVSKIY98/BorschPlaygroundService/1.0.0).
