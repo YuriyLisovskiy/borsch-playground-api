@@ -35,7 +35,7 @@ type JobDbModel struct {
 func (m *JobDbModel) GetOutputUrl(c *gin.Context) string {
 	rURI := c.Request.RequestURI
 	if !strings.HasSuffix(rURI, m.ID) {
-		rURI += "/" + m.ID
+		rURI += m.ID
 	}
 
 	return fmt.Sprintf("%s://%s%s/output", "http", c.Request.Host, rURI)
