@@ -8,6 +8,13 @@
 
 package models
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+)
+
 type JobOutputRowDbModel struct {
 	Model
 
@@ -19,8 +26,17 @@ type JobOutputRowDbModel struct {
 type JobDbModel struct {
 	Model
 
-	Code       string                `json:"code"`
-	Outputs    []JobOutputRowDbModel `json:"-" gorm:"foreignKey:JobID"`
-	ExitCode   *int                  `json:"exit_code"`
-	OutputsUrl string                `json:"outputs_url" gorm:"-:all"`
+	Code      string                `json:"source_code"`
+	Outputs   []JobOutputRowDbModel `json:"-" gorm:"foreignKey:JobID"`
+	ExitCode  *int                  `json:"exit_code"`
+	OutputUrl string                `json:"output_url" gorm:"-:all"`
+}
+
+func (m *JobDbModel) GetOutputUrl(c *gin.Context) string {
+	rURI := c.Request.RequestURI
+	if !strings.HasSuffix(rURI, m.ID) {
+		rURI += "/" + m.ID
+	}
+
+	return fmt.Sprintf("%s://%s%s/output", "http", c.Request.Host, rURI)
 }

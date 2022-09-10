@@ -10,7 +10,6 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -25,7 +24,7 @@ func (a *Application) addJobRoutes(rg *gin.RouterGroup) {
 	jobRouter := rg.Group("/jobs")
 
 	jobRouter.GET("/:id", jsonHandler(a.getJobHandler))
-	jobRouter.GET("/:id/outputs", jsonHandler(a.getJobOutputsHandler))
+	jobRouter.GET("/:id/output", jsonHandler(a.getJobOutputHandler))
 	jobRouter.POST("/", jsonHandler(a.createJobHandler))
 }
 
@@ -40,11 +39,11 @@ func (a *Application) getJobHandler(c *gin.Context) (int, interface{}, error) {
 		return -1, nil, err
 	}
 
-	job.OutputsUrl = fmt.Sprintf("%s://%s%s/outputs", "http", c.Request.Host, c.Request.RequestURI)
+	job.OutputUrl = job.GetOutputUrl(c)
 	return http.StatusOK, job, nil
 }
 
-func (a *Application) getJobOutputsHandler(c *gin.Context) (int, interface{}, error) {
+func (a *Application) getJobOutputHandler(c *gin.Context) (int, interface{}, error) {
 	jobId := c.Param("id")
 	qOffset := c.DefaultQuery("offset", "0")
 	offset, err := strconv.Atoi(qOffset)
@@ -56,7 +55,8 @@ func (a *Application) getJobOutputsHandler(c *gin.Context) (int, interface{}, er
 		return http.StatusBadRequest, jObj, nil
 	}
 
-	err = a.db.Model(&models.JobDbModel{}).First(nil, "ID = ?", jobId).Error
+	var job models.JobDbModel
+	err = a.db.Model(&job).First(nil, "ID = ?", jobId).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return http.StatusNotFound, nil, errors.New("job not found")
@@ -71,7 +71,7 @@ func (a *Application) getJobOutputsHandler(c *gin.Context) (int, interface{}, er
 		return -1, nil, err
 	}
 
-	return http.StatusOK, jobOutputs, nil
+	return http.StatusOK, gin.H{"exit_code": job.ExitCode, "rows": jobOutputs}, nil
 }
 
 func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error) {
@@ -115,5 +115,5 @@ func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error)
 		}
 	}
 
-	return http.StatusCreated, gin.H{"job_id": job.ID}, nil
+	return http.StatusCreated, gin.H{"job_id": job.ID, "output_url": job.GetOutputUrl(c)}, nil
 }
