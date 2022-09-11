@@ -7,8 +7,8 @@ RUN apk add build-base
 
 COPY . .
 
-RUN go mod download && \
-    go build -o ./borschplayground ./main.go
+RUN go mod download
+RUN go build -o ./borschplayground ./main.go
 
 FROM docker:20.10.17-alpine3.16
 WORKDIR /app/

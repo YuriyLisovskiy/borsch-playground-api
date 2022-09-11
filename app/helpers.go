@@ -72,6 +72,22 @@ func jsonHandler(handler func(*gin.Context) (int, interface{}, error)) func(*gin
 	}
 }
 
+func txtHandler(handler func(*gin.Context) (int, string, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		status, str, err := handler(c)
+		if err != nil {
+			log.Println(err)
+			if status != -1 {
+				c.String(http.StatusInternalServerError, err.Error())
+			} else {
+				c.String(http.StatusInternalServerError, "Internal error")
+			}
+		} else {
+			c.String(status, str)
+		}
+	}
+}
+
 func stringArrayContains(array []string, item string) bool {
 	for _, elem := range array {
 		if elem == item {

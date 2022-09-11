@@ -25,6 +25,7 @@ func (a *Application) addJobRoutes(rg *gin.RouterGroup) {
 
 	jobRouter.GET("/:id", jsonHandler(a.getJobHandler))
 	jobRouter.GET("/:id/output", jsonHandler(a.getJobOutputHandler))
+	jobRouter.GET("/:id/output.txt", txtHandler(a.getJobOutputTxtHandler))
 	jobRouter.POST("/", jsonHandler(a.createJobHandler))
 }
 
@@ -49,7 +50,7 @@ func (a *Application) getJobOutputHandler(c *gin.Context) (int, interface{}, err
 	offset, err := strconv.Atoi(qOffset)
 	if err != nil {
 		jObj := map[string]interface{}{
-			"message":           "Offset is not an integer value",
+			"message":           "Offset is invalid integer value",
 			"documentation_url": a.settings.ApiDocumentationUrl,
 		}
 		return http.StatusBadRequest, jObj, nil
@@ -72,6 +73,36 @@ func (a *Application) getJobOutputHandler(c *gin.Context) (int, interface{}, err
 	}
 
 	return http.StatusOK, gin.H{"exit_code": job.ExitCode, "rows": jobOutputs}, nil
+}
+
+func (a *Application) getJobOutputTxtHandler(c *gin.Context) (int, string, error) {
+	jobId := c.Param("id")
+	var job models.JobDbModel
+	err := a.db.Model(&job).First(nil, "ID = ?", jobId).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return http.StatusNotFound, "", errors.New("job not found")
+		}
+
+		return -1, "", err
+	}
+
+	var jobOutputs []models.JobOutputRowDbModel
+	err = a.db.Find(&jobOutputs, "job_id = ?", jobId).Error
+	if err != nil {
+		return -1, "", err
+	}
+
+	outputLen := len(jobOutputs)
+	outputString := ""
+	for i, output := range jobOutputs {
+		outputString += output.Text
+		if i < outputLen-1 {
+			outputString += "\n"
+		}
+	}
+
+	return http.StatusOK, outputString, nil
 }
 
 func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error) {
