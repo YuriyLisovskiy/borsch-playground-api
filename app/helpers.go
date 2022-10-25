@@ -12,7 +12,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/YuriyLisovskiy/borsch-playground-service/models"
+	"github.com/YuriyLisovskiy/borsch-playground-api/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

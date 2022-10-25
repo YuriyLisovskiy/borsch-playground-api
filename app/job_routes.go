@@ -13,8 +13,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/YuriyLisovskiy/borsch-playground-service/core"
-	"github.com/YuriyLisovskiy/borsch-playground-service/models"
+	"github.com/YuriyLisovskiy/borsch-playground-api/core"
+	"github.com/YuriyLisovskiy/borsch-playground-api/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"

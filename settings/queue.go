@@ -8,7 +8,7 @@
 
 package settings
 
-import "github.com/YuriyLisovskiy/borsch-playground-service/core"
+import "github.com/YuriyLisovskiy/borsch-playground-api/core"
 
 type Queue struct {
 	Workers  int `json:"workers"`

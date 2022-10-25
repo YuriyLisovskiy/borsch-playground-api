@@ -1,4 +1,4 @@
-module github.com/YuriyLisovskiy/borsch-playground-service
+module github.com/YuriyLisovskiy/borsch-playground-api
 
 go 1.17
 

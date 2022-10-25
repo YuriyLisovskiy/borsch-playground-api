@@ -9,8 +9,8 @@
 package commands
 
 import (
-	"github.com/YuriyLisovskiy/borsch-playground-service/migrations"
-	"github.com/YuriyLisovskiy/borsch-playground-service/settings"
+	"github.com/YuriyLisovskiy/borsch-playground-api/migrations"
+	"github.com/YuriyLisovskiy/borsch-playground-api/settings"
 	"github.com/spf13/cobra"
 )
 

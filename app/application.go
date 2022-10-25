@@ -18,9 +18,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/YuriyLisovskiy/borsch-playground-service/core"
-	"github.com/YuriyLisovskiy/borsch-playground-service/models"
-	"github.com/YuriyLisovskiy/borsch-playground-service/settings"
+	"github.com/YuriyLisovskiy/borsch-playground-api/core"
+	"github.com/YuriyLisovskiy/borsch-playground-api/models"
+	"github.com/YuriyLisovskiy/borsch-playground-api/settings"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

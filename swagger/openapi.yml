@@ -7,7 +7,7 @@ info:
   description: This API allows to execute code written in Borsch programming language without installing the interpreter on the local machine.
   contact:
     name: API Issues
-    url: https://github.com/YuriyLisovskiy/borsch-playground-service/issues
+    url: https://github.com/YuriyLisovskiy/borsch-playground-api/issues
   version: "1.0.0"
   title: Borsch Playground API
   license:

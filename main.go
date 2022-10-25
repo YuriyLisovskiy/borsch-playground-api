@@ -11,7 +11,7 @@ package main
 import (
 	"log"
 
-	"github.com/YuriyLisovskiy/borsch-playground-service/commands"
+	"github.com/YuriyLisovskiy/borsch-playground-api/commands"
 )
 
 func main() {
