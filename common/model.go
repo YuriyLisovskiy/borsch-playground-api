@@ -6,7 +6,7 @@
  * terms of the MIT license.
  */
 
-package models
+package common
 
 import (
 	"time"

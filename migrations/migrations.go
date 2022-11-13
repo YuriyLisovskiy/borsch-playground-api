@@ -9,16 +9,16 @@
 package migrations
 
 import (
-	"github.com/YuriyLisovskiy/borsch-playground-api/models"
+	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
 	"gorm.io/gorm"
 )
 
 func Migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&models.JobOutputRowDbModel{}); err != nil {
+	if err := db.AutoMigrate(&jobs.JobOutputRowDbModel{}); err != nil {
 		return err
 	}
 
-	if err := db.AutoMigrate(&models.JobDbModel{}); err != nil {
+	if err := db.AutoMigrate(&jobs.Job{}); err != nil {
 		return err
 	}
 

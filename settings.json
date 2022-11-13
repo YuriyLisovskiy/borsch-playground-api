@@ -1,18 +1,8 @@
 {
-  "debug": false,
+  "gin_mode": "debug",
   "shutdown_timeout_sec": 5,
   "borsch_versions": ["0.0.0"],
   "api_documentation_url": "https://app.swaggerhub.com/apis-docs/YURALISOVSKIY98/BorschPlaygroundService/1.0.0",
-  "runner": {
-    "image": "",
-    "tag_suffix": "-alpine",
-    "shell": "sh",
-    "command": ""
-  },
-  "queue": {
-    "workers": 1,
-    "capacity": 1
-  },
   "database": {
     "sqlite3": "db.sqlite3"
   }

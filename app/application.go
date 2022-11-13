@@ -18,40 +18,32 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/core"
-	"github.com/YuriyLisovskiy/borsch-playground-api/models"
+	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
+	rmq "github.com/YuriyLisovskiy/borsch-playground-api/rabbitmq"
 	"github.com/YuriyLisovskiy/borsch-playground-api/settings"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type Application struct {
-	settings *settings.Settings
-	queue    *core.Queue
-	db       *gorm.DB
+	settings       *settings.Settings
+	db             *gorm.DB
+	jobService     jobs.JobService
+	amqpJobService rmq.AMQPJobService
 }
 
-func NewApp(s *settings.Settings) (*Application, error) {
-	mode := gin.ReleaseMode
-	if s.Debug {
-		mode = gin.DebugMode
-	}
-
-	gin.SetMode(mode)
-	db, err := s.Database.Create()
-	if err != nil {
-		return nil, err
-	}
-
-	jobQueue, err := s.Queue.Create()
-	if err != nil {
-		return nil, err
-	}
-
+func NewApp(
+	s *settings.Settings,
+	db *gorm.DB,
+	jobService jobs.JobService,
+	amqpJobService rmq.AMQPJobService,
+) (*Application, error) {
+	gin.SetMode(s.GinMode)
 	app := &Application{
-		settings: s,
-		queue:    jobQueue,
-		db:       db,
+		settings:       s,
+		db:             db,
+		jobService:     jobService,
+		amqpJobService: amqpJobService,
 	}
 	return app, nil
 }
@@ -95,21 +87,4 @@ func (a *Application) Execute(addr string) error {
 
 	log.Println("Server exiting")
 	return nil
-}
-
-func (a *Application) enqueueJob(job *models.JobDbModel, interpreterVersion string) error {
-	jobInfoHandler := &JobInfoHandler{db: a.db, jobId: job.ID}
-	r := a.settings.Runner
-	tag := fmt.Sprintf("%s%s", interpreterVersion, r.TagSuffix)
-	dockerJob := core.NewEvalCodeJob(
-		r.Image,
-		tag,
-		r.Shell,
-		r.Command,
-		job.Code,
-		jobInfoHandler,
-		jobInfoHandler,
-		jobInfoHandler,
-	)
-	return a.queue.Enqueue(dockerJob)
 }

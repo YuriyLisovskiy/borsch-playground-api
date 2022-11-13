@@ -11,11 +11,11 @@ package main
 import (
 	"log"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/commands"
+	"github.com/YuriyLisovskiy/borsch-playground-api/cmd"
 )
 
 func main() {
-	if err := commands.Execute(); err != nil {
+	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }

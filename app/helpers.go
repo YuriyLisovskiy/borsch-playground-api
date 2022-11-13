@@ -12,7 +12,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/models"
+	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -23,14 +23,14 @@ type JobInfoHandler struct {
 }
 
 func (h *JobInfoHandler) Write(out string) {
-	var job models.JobDbModel
+	var job jobs.Job
 	err := h.db.First(&job, "ID = ?", h.jobId).Error
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	job.Outputs = append(job.Outputs, models.JobOutputRowDbModel{Text: out})
+	job.Outputs = append(job.Outputs, jobs.JobOutputRowDbModel{Text: out})
 	h.db.Model(&job).Update("Outputs", job.Outputs)
 }
 
@@ -44,7 +44,7 @@ func (h *JobInfoHandler) OnExit(exitCode int, exitErr error) {
 		h.OnError(exitErr)
 	}
 
-	var job models.JobDbModel
+	var job jobs.Job
 	err := h.db.First(&job, "ID = ?", h.jobId).Error
 	if err != nil {
 		h.OnError(err)
@@ -72,19 +72,26 @@ func jsonHandler(handler func(*gin.Context) (int, interface{}, error)) func(*gin
 	}
 }
 
-func txtHandler(handler func(*gin.Context) (int, string, error)) func(*gin.Context) {
-	return func(c *gin.Context) {
-		status, str, err := handler(c)
-		if err != nil {
-			log.Println(err)
-			if status != -1 {
-				c.String(http.StatusInternalServerError, err.Error())
-			} else {
-				c.String(http.StatusInternalServerError, "Internal error")
-			}
-		} else {
-			c.String(status, str)
-		}
+func (a *Application) sendJsonError(c *gin.Context, status int, err error) {
+	log.Println(err)
+	if status != -1 {
+		c.JSON(
+			status, gin.H{
+				"message":           err.Error(),
+				"documentation_url": a.settings.ApiDocumentationUrl,
+			},
+		)
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
+	}
+}
+
+func (a *Application) sendTxtError(c *gin.Context, status int, err error) {
+	log.Println(err)
+	if status != -1 {
+		c.String(status, err.Error())
+	} else {
+		c.String(http.StatusInternalServerError, "internal error")
 	}
 }
 

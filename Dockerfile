@@ -17,5 +17,5 @@ COPY --from=0 /app/borschplayground ./
 RUN apk --no-cache add ca-certificates && \
     ./borschplayground migrate
 
-EXPOSE 8080
+#EXPOSE 8080
 ENTRYPOINT ./borschplayground --address 0.0.0.0:$PORT

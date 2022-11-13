@@ -6,25 +6,26 @@
  * terms of the MIT license.
  */
 
-package models
+package jobs
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/YuriyLisovskiy/borsch-playground-api/common"
 	"github.com/gin-gonic/gin"
 )
 
 type JobOutputRowDbModel struct {
-	Model
+	common.Model
 
 	ID    uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	Text  string `json:"text"`
 	JobID string `json:"job_id"`
 }
 
-type JobDbModel struct {
-	Model
+type Job struct {
+	common.Model
 
 	Code      string                `json:"source_code"`
 	Outputs   []JobOutputRowDbModel `json:"-" gorm:"foreignKey:JobID"`
@@ -32,7 +33,7 @@ type JobDbModel struct {
 	OutputUrl string                `json:"output_url" gorm:"-:all"`
 }
 
-func (m *JobDbModel) GetOutputUrl(c *gin.Context) string {
+func (m *Job) GetOutputUrl(c *gin.Context) string {
 	rURI := c.Request.RequestURI
 	if !strings.HasSuffix(rURI, m.ID) {
 		rURI += m.ID

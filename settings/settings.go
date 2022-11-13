@@ -10,20 +10,37 @@ package settings
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Settings struct {
-	Debug               bool          `json:"debug"`
+	GinMode             string        `json:"gin_mode"`
 	ShutdownTimeoutSec  time.Duration `json:"shutdown_timeout_sec"`
 	BorschVersions      []string      `json:"borsch_versions"`
 	ApiDocumentationUrl string        `json:"api_documentation_url"`
-	Runner              *Runner       `json:"runner"`
-	Queue               *Queue        `json:"queue"`
 	Database            *Database     `json:"database"`
+}
+
+func (s *Settings) PerformChecks() error {
+	switch s.GinMode {
+	case gin.DebugMode, gin.ReleaseMode, gin.TestMode:
+		break
+	default:
+		return fmt.Errorf(
+			"invalid Gin mode, available values are '%s', '%s', '%s'",
+			gin.DebugMode,
+			gin.ReleaseMode,
+			gin.TestMode,
+		)
+	}
+
+	return nil
 }
 
 func Load() (*Settings, error) {

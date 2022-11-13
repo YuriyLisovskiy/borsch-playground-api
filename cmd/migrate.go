@@ -6,41 +6,35 @@
  * terms of the MIT license.
  */
 
-package commands
+package cmd
 
 import (
-	"github.com/YuriyLisovskiy/borsch-playground-api/app"
+	"github.com/YuriyLisovskiy/borsch-playground-api/migrations"
 	"github.com/YuriyLisovskiy/borsch-playground-api/settings"
 	"github.com/spf13/cobra"
 )
 
-var (
-	addressArg string
-)
-
-var rootCmd = &cobra.Command{
-	Use: "borschplayground",
+var migrateCmd = &cobra.Command{
+	Use:   "migrate",
+	Short: "Migrate the database",
+	Args: func(cmd *cobra.Command, args []string) error {
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		appSettings, err := settings.Load()
+		s, err := settings.Load()
 		if err != nil {
 			return err
 		}
 
-		app, err := app.NewApp(appSettings)
+		db, err := s.Database.Create()
 		if err != nil {
 			return err
 		}
 
-		return app.Execute(addressArg)
+		return migrations.Migrate(db)
 	},
 }
 
-func Execute() error {
-	return rootCmd.Execute()
-}
-
 func init() {
-	rootCmd.Flags().StringVarP(
-		&addressArg, "address", "a", "127.0.0.1:8080", "server address",
-	)
+	rootCmd.AddCommand(migrateCmd)
 }
