@@ -11,13 +11,14 @@ package rmq
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
+	"borsch-playground-api/jobs"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -25,6 +26,12 @@ type AMQPJobService interface {
 	ConsumeJobResults() error
 	PublishJob(job *JobMessage) error
 }
+
+const (
+	EnvRabbitMQServer      = "RABBITMQ_SERVER"
+	EnvRabbitMQJobQueue    = "RABBITMQ_JOB_QUEUE"
+	EnvRabbitMQResultQueue = "RABBITMQ_RESULT_QUEUE"
+)
 
 type RabbitMQJobService struct {
 	Server     string
@@ -44,13 +51,12 @@ func (mq *RabbitMQJobService) Setup() error {
 	}
 
 	mq.connection = connection
-	// defer connection.Close()
-	mq.jobChannel, mq.jobQueue, err = createQueue(connection, os.Getenv("RABBITMQ_JOB_QUEUE"))
+	mq.jobChannel, mq.jobQueue, err = createQueue(connection, os.Getenv(EnvRabbitMQJobQueue))
 	if err != nil {
 		return err
 	}
 
-	mq.jobResultChannel, mq.jobResultQueue, err = createQueue(connection, os.Getenv("RABBITMQ_RESULT_QUEUE"))
+	mq.jobResultChannel, mq.jobResultQueue, err = createQueue(connection, os.Getenv(EnvRabbitMQResultQueue))
 	if err != nil {
 		return err
 	}
@@ -59,39 +65,18 @@ func (mq *RabbitMQJobService) Setup() error {
 }
 
 func (mq *RabbitMQJobService) CleanUp() {
-	defer mq.connection.Close()
-	defer mq.jobChannel.Close()
-	defer mq.jobResultChannel.Close()
+	logOrNil(mq.connection.Close())
+	logOrNil(mq.jobChannel.Close())
+	logOrNil(mq.jobResultChannel.Close())
 }
 
 func (mq *RabbitMQJobService) ConsumeJobResults() error {
-	messages, err := mq.jobResultChannel.Consume(
-		mq.jobResultQueue.Name, // queue
-		"",                     // consumer
-		false,                  // auto-ack
-		false,                  // exclusive
-		false,                  // no-local
-		false,                  // no-wait
-		nil,                    // args
-	)
+	messages, err := mq.jobResultChannel.Consume(mq.jobResultQueue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("failed to register a consumer: %v", err)
 	}
 
-	go func() {
-		for d := range messages {
-			err = mq.processJobResult(d.Body)
-			if err != nil {
-				log.Printf(err.Error())
-				continue
-			}
-
-			err = d.Ack(false)
-			if err != nil {
-				log.Printf(err.Error())
-			}
-		}
-	}()
+	go mq.processMessagesAsync(messages)
 	return nil
 }
 
@@ -106,9 +91,9 @@ func (mq *RabbitMQJobService) PublishJob(job *JobMessage) error {
 
 	err = mq.jobChannel.PublishWithContext(
 		ctx,
-		"",               // exchange
-		mq.jobQueue.Name, // routing key
-		false,            // mandatory
+		"",
+		mq.jobQueue.Name,
+		false,
 		false,
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
@@ -148,34 +133,46 @@ func (mq *RabbitMQJobService) processJobResult(data []byte) error {
 	return mq.JobService.UpdateJob(job)
 }
 
+func (mq *RabbitMQJobService) processMessagesAsync(messages <-chan amqp.Delivery) {
+	for d := range messages {
+		err := mq.processJobResult(d.Body)
+		if err != nil {
+			log.Printf(err.Error())
+			continue
+		}
+
+		err = d.Ack(false)
+		if err != nil {
+			log.Printf(err.Error())
+		}
+	}
+}
+
 func createQueue(connection *amqp.Connection, name string) (*amqp.Channel, amqp.Queue, error) {
+	if name == "" {
+		return nil, amqp.Queue{}, errors.New("RabbitMQ queue is not set")
+	}
+
 	channel, err := connection.Channel()
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to open a channel: %v", err)
 	}
 
-	// defer channel.Close()
-
-	queue, err := channel.QueueDeclare(
-		name,  // name
-		true,  // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
-	)
+	queue, err := channel.QueueDeclare(name, true, false, false, false, nil)
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to declare a queue: %v", err)
 	}
 
-	err = channel.Qos(
-		1,     // prefetch count
-		0,     // prefetch size
-		false, // global
-	)
+	err = channel.Qos(1, 0, false)
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to set QoS: %v", err)
 	}
 
 	return channel, queue, nil
+}
+
+func logOrNil(err error) {
+	if err != nil {
+		log.Println(err)
+	}
 }

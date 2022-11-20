@@ -9,7 +9,7 @@
 package migrations
 
 import (
-	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
+	"borsch-playground-api/jobs"
 	"gorm.io/gorm"
 )
 

@@ -18,9 +18,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
-	rmq "github.com/YuriyLisovskiy/borsch-playground-api/rabbitmq"
-	"github.com/YuriyLisovskiy/borsch-playground-api/settings"
+	"borsch-playground-api/jobs"
+	rmq "borsch-playground-api/rmq"
+	"borsch-playground-api/settings"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -70,15 +70,11 @@ func (a *Application) Execute(addr string) error {
 		}
 	}()
 
-	// Listen for the interrupt signal.
 	<-ctx.Done()
 
-	// Restore default behavior on the interrupt signal and notify user of shutdown.
 	stop()
 	log.Println("shutting down gracefully, press Ctrl+C again to force")
 
-	// The context is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
 	ctx, cancel := context.WithTimeout(context.Background(), a.settings.ShutdownTimeoutSec*time.Second)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {

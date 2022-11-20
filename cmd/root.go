@@ -11,10 +11,10 @@ package cmd
 import (
 	"os"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/app"
-	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
-	rmq "github.com/YuriyLisovskiy/borsch-playground-api/rabbitmq"
-	"github.com/YuriyLisovskiy/borsch-playground-api/settings"
+	"borsch-playground-api/app"
+	"borsch-playground-api/jobs"
+	rmq "borsch-playground-api/rmq"
+	"borsch-playground-api/settings"
 	"github.com/spf13/cobra"
 )
 
@@ -23,41 +23,8 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "borsch-playground-api",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		settings, err := settings.Load()
-		if err != nil {
-			return err
-		}
-
-		db, err := settings.Database.Create()
-		if err != nil {
-			return err
-		}
-
-		jobService := jobs.NewJobServiceImpl(db)
-		amqpJobService := rmq.RabbitMQJobService{
-			Server:     os.Getenv("RABBITMQ_SERVER"),
-			JobService: jobService,
-		}
-		err = amqpJobService.Setup()
-		if err != nil {
-			return err
-		}
-
-		defer amqpJobService.CleanUp()
-		err = amqpJobService.ConsumeJobResults()
-		if err != nil {
-			return err
-		}
-
-		app, err := app.NewApp(settings, db, jobService, &amqpJobService)
-		if err != nil {
-			return err
-		}
-
-		return app.Execute(addressArg)
-	},
+	Use:  "borsch-playground-api",
+	RunE: root,
 }
 
 func Execute() error {
@@ -66,6 +33,41 @@ func Execute() error {
 
 func init() {
 	rootCmd.Flags().StringVarP(
-		&addressArg, "address", "a", "127.0.0.1:8080", "server address",
+		&addressArg, "bind", "b", "127.0.0.1:8080", "bind address",
 	)
+}
+
+func root(*cobra.Command, []string) error {
+	s, err := settings.Load()
+	if err != nil {
+		return err
+	}
+
+	db, err := s.Database.Build()
+	if err != nil {
+		return err
+	}
+
+	jobService := jobs.NewJobServiceImpl(db)
+	amqpJobService := rmq.RabbitMQJobService{
+		Server:     os.Getenv(rmq.EnvRabbitMQServer),
+		JobService: jobService,
+	}
+	err = amqpJobService.Setup()
+	if err != nil {
+		return err
+	}
+
+	defer amqpJobService.CleanUp()
+	err = amqpJobService.ConsumeJobResults()
+	if err != nil {
+		return err
+	}
+
+	a, err := app.NewApp(s, db, jobService, &amqpJobService)
+	if err != nil {
+		return err
+	}
+
+	return a.Execute(addressArg)
 }

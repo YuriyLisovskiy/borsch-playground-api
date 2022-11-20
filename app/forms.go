@@ -9,6 +9,6 @@
 package app
 
 type CreateJobForm struct {
-	LangV      string `json:"lang_v"`
-	SourceCode string `json:"source_code"`
+	LangVersion string `json:"lang_version"`
+	SourceCode  string `json:"source_code"`
 }

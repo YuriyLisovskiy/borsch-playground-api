@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/common"
+	"borsch-playground-api/common"
 	"github.com/gin-gonic/gin"
 )
 

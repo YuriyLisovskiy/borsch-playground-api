@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/common"
-	"github.com/YuriyLisovskiy/borsch-playground-api/jobs"
-	rmq "github.com/YuriyLisovskiy/borsch-playground-api/rabbitmq"
+	"borsch-playground-api/common"
+	"borsch-playground-api/jobs"
+	rmq "borsch-playground-api/rmq"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -102,7 +102,7 @@ func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error)
 		return http.StatusBadRequest, nil, err
 	}
 
-	if !stringArrayContains(a.settings.BorschVersions, form.LangV) {
+	if !stringArrayContains(a.settings.BorschVersions, form.LangVersion) {
 		return http.StatusBadRequest, nil, errors.New("language version does not exist")
 	}
 
@@ -126,7 +126,7 @@ func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error)
 
 	jobMessage := rmq.JobMessage{
 		ID:          job.ID,
-		LangVersion: form.LangV,
+		LangVersion: form.LangVersion,
 		SourceCode:  form.SourceCode,
 	}
 	err = a.amqpJobService.PublishJob(&jobMessage)

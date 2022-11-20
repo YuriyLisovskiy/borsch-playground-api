@@ -44,18 +44,13 @@ func (s *Settings) PerformChecks() error {
 }
 
 func Load() (*Settings, error) {
-	localSettings, err := loadFromJson("settings.local.json")
-	if err == nil {
-		return localSettings, nil
-	}
-
-	return loadFromJson("settings.json")
+	return load("settings.json")
 }
 
-func loadFromJson(filename string) (*Settings, error) {
+func load(filename string) (*Settings, error) {
 	jsonFile, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %s", err, filename)
 	}
 
 	defer func() {
