@@ -1,4 +1,9 @@
-## Borsch Playground Service
+## Borsch Playground API
+
+| Branch | CI                                                                                                                                                                                                     |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `main` | [![main-ci](https://github.com/YuriyLisovskiy/borsch-playground-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/YuriyLisovskiy/borsch-playground-api/actions/workflows/ci.yml) |
+| `dev`  | [![dev-ci](https://github.com/YuriyLisovskiy/borsch-playground-api/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/YuriyLisovskiy/borsch-playground-api/actions/workflows/ci.yml)   |
 
 This API allows to execute code written in Borsch programming language
 without installing the interpreter on the local machine.
