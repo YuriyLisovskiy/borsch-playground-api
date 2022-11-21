@@ -14,7 +14,7 @@ type JobService interface {
 	GetJob(id string) (*Job, error)
 	CreateJob(job *Job) error
 	UpdateJob(job *Job) error
-	GetJobOutputs(jobId string, offset, limit int) ([]JobOutputRowDbModel, error)
+	GetJobOutputs(jobId string, offset, limit int) ([]JobOutputRow, error)
 }
 
 type JobServiceImpl struct {
@@ -38,13 +38,13 @@ func (js *JobServiceImpl) UpdateJob(job *Job) error {
 	return js.db.Save(&job).Error
 }
 
-func (js *JobServiceImpl) GetJobOutputs(jobId string, offset, limit int) ([]JobOutputRowDbModel, error) {
+func (js *JobServiceImpl) GetJobOutputs(jobId string, offset, limit int) ([]JobOutputRow, error) {
 	_, err := js.GetJob(jobId)
 	if err != nil {
 		return nil, err
 	}
 
-	var outputs []JobOutputRowDbModel
+	var outputs []JobOutputRow
 	err = js.db.Offset(offset).Limit(limit).Find(&outputs, "job_id = ?", jobId).Error
 	return outputs, err
 }

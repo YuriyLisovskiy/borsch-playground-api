@@ -27,4 +27,4 @@ Run the server:
 ```
 
 ### API
-Check out the [documentation](https://app.swaggerhub.com/apis-docs/YURALISOVSKIY98/BorschPlaygroundService/1.0.0).
+Check out the [documentation](https://app.swaggerhub.com/apis-docs/borsch-lang/playground-api/1.0.0).

@@ -1,8 +1,9 @@
 Dockerfile*
 .*ignore
 
-# Development files
+# Local storages
 db.sqlite3
+postgres-data/
 
 # Documentation and other stuff
 swagger/

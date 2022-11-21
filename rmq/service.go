@@ -122,12 +122,14 @@ func (mq *RabbitMQJobService) processJobResult(data []byte) error {
 
 	switch jobResult.Type {
 	case jobResultLog:
-		job.Outputs = append(job.Outputs, jobs.JobOutputRowDbModel{Text: jobResult.Data})
+		job.Outputs = append(job.Outputs, jobs.JobOutputRow{Text: jobResult.Data})
+		job.Status = jobs.JobStatusRunning
 	case jobResultExit:
 		job.ExitCode = new(int)
 		*job.ExitCode, err = strconv.Atoi(jobResult.Data)
+		job.Status = jobs.JobStatusFinished
 	default:
-		return nil
+		return fmt.Errorf("invalid type of job result: %s", jobResult.Type)
 	}
 
 	return mq.JobService.UpdateJob(job)

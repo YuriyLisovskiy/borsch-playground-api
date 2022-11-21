@@ -10,6 +10,7 @@ package app
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,7 +29,7 @@ func (a *Application) getJobHandler(c *gin.Context) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			a.sendJsonError(c, http.StatusNotFound, errors.New("job not found"))
 		} else {
-			a.sendJsonError(c, http.StatusNotFound, err)
+			a.sendJsonError(c, http.StatusInternalServerError, err)
 		}
 
 		return
@@ -67,14 +68,14 @@ func (a *Application) getJobOutputHandler(c *gin.Context) {
 
 	outputs, err := a.jobService.GetJobOutputs(jobId, offset, limit)
 	if err != nil {
-		a.sendJsonError(c, http.StatusNotFound, err)
+		a.sendJsonError(c, http.StatusInternalServerError, err)
 		return
 	}
 
 	formatParam := c.DefaultQuery("format", "json")
 	switch strings.ToLower(formatParam) {
 	case "json":
-		c.JSON(http.StatusOK, gin.H{"exit_code": job.ExitCode, "rows": outputs})
+		c.JSON(http.StatusOK, gin.H{"status": job.Status, "rows": outputs})
 	case "txt":
 		outputLen := len(outputs)
 		outputString := ""
@@ -95,19 +96,27 @@ func (a *Application) getJobOutputHandler(c *gin.Context) {
 	}
 }
 
-func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error) {
+func (a *Application) createJobHandler(c *gin.Context) {
 	var form CreateJobForm
 	err := c.ShouldBindJSON(&form)
 	if err != nil {
-		return http.StatusBadRequest, nil, err
+		a.sendJsonError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if form.LangVersion == "" {
+		a.sendJsonError(c, http.StatusBadRequest, errors.New("language version is not provided"))
+		return
 	}
 
 	if !stringArrayContains(a.settings.BorschVersions, form.LangVersion) {
-		return http.StatusBadRequest, nil, errors.New("language version does not exist")
+		a.sendJsonError(c, http.StatusBadRequest, errors.New("language version does not exist"))
+		return
 	}
 
 	if len(form.SourceCode) == 0 {
-		return http.StatusBadRequest, nil, errors.New("code is not provided or empty")
+		a.sendJsonError(c, http.StatusBadRequest, errors.New("source code is not provided"))
+		return
 	}
 
 	job := &jobs.Job{
@@ -115,24 +124,38 @@ func (a *Application) createJobHandler(c *gin.Context) (int, interface{}, error)
 			ID: uuid.New().String(),
 		},
 		Code:     form.SourceCode,
-		Outputs:  []jobs.JobOutputRowDbModel{},
+		Outputs:  []jobs.JobOutputRow{},
 		ExitCode: nil,
+		Status:   jobs.JobStatusAccepted,
 	}
 
 	err = a.jobService.CreateJob(job)
 	if err != nil {
-		return -1, nil, err
+		a.sendJsonError(c, http.StatusInternalServerError, err)
+		return
 	}
 
+	c.JSON(http.StatusCreated, gin.H{"job_id": job.ID, "output_url": job.GetOutputUrl(c)})
+	a.publishJob(&form, job)
+}
+
+// publishJob pushes the job to the RabbitMQ and update its status.
+func (a *Application) publishJob(form *CreateJobForm, job *jobs.Job) {
 	jobMessage := rmq.JobMessage{
 		ID:          job.ID,
 		LangVersion: form.LangVersion,
 		SourceCode:  form.SourceCode,
 	}
-	err = a.amqpJobService.PublishJob(&jobMessage)
+	err := a.amqpJobService.PublishJob(&jobMessage)
 	if err != nil {
-		return -1, nil, err
+		log.Printf("Failed to publish job: %v", err)
+		job.Status = jobs.JobStatusRejected
+	} else {
+		job.Status = jobs.JobStatusQueued
 	}
 
-	return http.StatusCreated, gin.H{"job_id": job.ID, "output_url": job.GetOutputUrl(c)}, nil
+	err = a.jobService.UpdateJob(job)
+	if err != nil {
+		log.Printf("Failed to update job: %v", err)
+	}
 }

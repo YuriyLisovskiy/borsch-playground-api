@@ -2,15 +2,14 @@
   "gin_mode": "debug",
   "shutdown_timeout_sec": 5,
   "borsch_versions": ["0.1.0"],
-  "api_documentation_url": "https://app.swaggerhub.com/apis-docs/YURALISOVSKIY98/BorschPlaygroundService/1.0.0",
+  "api_documentation_url": "https://app.swaggerhub.com/apis-docs/borsch-lang/playground-api/1.0.0",
   "database": {
-    "sqlite3": "db.sqlite3",
     "postgresql": {
-      "host": "",
+      "host": "local_postgres_database",
       "port": 5432,
-      "user": "",
-      "password": "",
-      "db_name": ""
+      "user": "local_rest_api_user",
+      "password": "local-super-secret!",
+      "db_name": "postgres"
     }
   }
 }

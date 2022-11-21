@@ -16,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type JobOutputRowDbModel struct {
+type JobOutputRow struct {
 	common.Model
 
 	ID    uint   `json:"id" gorm:"primaryKey;autoIncrement"`
@@ -24,13 +24,24 @@ type JobOutputRowDbModel struct {
 	JobID string `json:"job_id"`
 }
 
+type JobStatus string
+
+const (
+	JobStatusAccepted JobStatus = "accepted"
+	JobStatusRejected JobStatus = "rejected"
+	JobStatusQueued   JobStatus = "queued"
+	JobStatusRunning  JobStatus = "running"
+	JobStatusFinished JobStatus = "finished"
+)
+
 type Job struct {
 	common.Model
 
-	Code      string                `json:"source_code"`
-	Outputs   []JobOutputRowDbModel `json:"-" gorm:"foreignKey:JobID"`
-	ExitCode  *int                  `json:"exit_code"`
-	OutputUrl string                `json:"output_url" gorm:"-:all"`
+	Code      string         `json:"source_code"`
+	Outputs   []JobOutputRow `json:"-" gorm:"foreignKey:JobID"`
+	ExitCode  *int           `json:"exit_code"`
+	OutputUrl string         `json:"output_url" gorm:"-:all"`
+	Status    JobStatus      `json:"status"`
 }
 
 func (m *Job) GetOutputUrl(c *gin.Context) string {

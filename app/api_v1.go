@@ -16,14 +16,14 @@ import (
 
 func (a *Application) addV1Routes(r *gin.Engine) {
 	apiV1 := r.Group("/api/v1")
-	apiV1.GET("/lang/versions", jsonHandler(a.getLanguageVersionsHandler))
+	apiV1.GET("/lang/versions", a.getLanguageVersionsHandler)
 
 	jobsRouter := apiV1.Group("/jobs")
 	jobsRouter.GET("/:id", a.getJobHandler)
 	jobsRouter.GET("/:id/output", a.getJobOutputHandler)
-	jobsRouter.POST("/", jsonHandler(a.createJobHandler))
+	jobsRouter.POST("/", a.createJobHandler)
 }
 
-func (a *Application) getLanguageVersionsHandler(*gin.Context) (int, interface{}, error) {
-	return http.StatusOK, a.settings.BorschVersions, nil
+func (a *Application) getLanguageVersionsHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, a.settings.BorschVersions)
 }

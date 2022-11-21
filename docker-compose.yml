@@ -4,9 +4,33 @@ services:
     env_file:
       - .env
     build: .
-    restart: unless-stopped
+    restart: on-failure
+    depends_on:
+      - migrate
     ports:
       - "8080:80"
+    command: ["./api_application", "--bind", "0.0.0.0:$PORT"]
+    networks:
+      - borsch-playground-network
+  migrate:
+    build: .
+    restart: on-failure
+    depends_on:
+      - local_postgres_database
+    command: ["./api_application", "migrate"]
+    networks:
+      - borsch-playground-network
+  local_postgres_database:
+    image: "postgres:15"
+    ports:
+      - "5432:5432"
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - borsch-playground-network
 networks:

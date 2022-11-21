@@ -14,7 +14,7 @@ import (
 )
 
 func Migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&jobs.JobOutputRowDbModel{}); err != nil {
+	if err := db.AutoMigrate(&jobs.JobOutputRow{}); err != nil {
 		return err
 	}
 

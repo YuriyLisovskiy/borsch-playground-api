@@ -1,28 +1,45 @@
 openapi: 3.0.0
 servers:
-  # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/YURALISOVSKIY98/BorschPlaygroundService/1.0.0
+    url: https://virtserver.swaggerhub.com/borsch-lang/playground-api/1.0.0
 info:
-  description: This API allows to execute code written in Borsch programming language without installing the interpreter on the local machine.
+  title: Borsch Playground API
+  description: |
+    This API allows to execute the code written in the Borsch programming language
+    without installing the interpreter on the local machine.
+  version: "1.0.0"
   contact:
     name: API Issues
     url: https://github.com/YuriyLisovskiy/borsch-playground-api/issues
-  version: "1.0.0"
-  title: Borsch Playground API
   license:
     name: MIT
     url: 'https://opensource.org/licenses/MIT'
 tags:
   - name: jobs
-    description: Operations for retrieving jobs' information
+    description: Operations for managing jobs
 paths:
+  /api/v1/lang/versions:
+    get:
+      summary: Get available versions of the Borsch language
+      description: "Returns a list of available versions of the Borsch language."
+      operationId: getLanguages
+      responses:
+        '200':
+          description: The array of versions of the Borsch language
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: SemVer
+                example: [0.1.0, 0.1.6]
   /api/v1/jobs/{id}:
     get:
       tags:
         - jobs
       summary: Get job
-      description: "Returns job's info without outputs."
+      description: "Returns job info without outputs."
       operationId: getJob
       parameters:
         - in: path
@@ -45,12 +62,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobNotFoundResponse'
-  /api/v1/jobs/{id}/outputs:
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerErrorResponse'
+  /api/v1/jobs/{id}/output:
     get:
       tags:
         - jobs
-      summary: Get job's outputs
-      operationId: getJobOutputs
+      summary: Get the console output of the completed job
+      operationId: getJobOutput
       parameters:
         - in: path
           name: id
@@ -64,17 +87,38 @@ paths:
           description: Skip first n rows
           required: false
           schema:
-            type: number
-            format: int64
-            minimum: 0
+            $ref: '#/components/schemas/PositiveInt64'
           example: 7
+        - in: query
+          name: limit
+          description: Get first n rows after offset
+          required: false
+          schema:
+            $ref: '#/components/schemas/PositiveInt64'
+          example: 5
+        - in: query
+          name: format
+          description: Format of the output result
+          required: false
+          schema:
+            type: string
+            enum:
+              - json
+              - txt
+            example: json
       responses:
         '200':
           description: Search results matching criteria
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArrayOfJobOutputs'
+                $ref: '#/components/schemas/JobOutputResponse'
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  Виконання алгоритму пошуку...
+                  Результат знайдено: 123
         '400':
           description: Bad input parameters
           content:
@@ -84,22 +128,29 @@ paths:
                 properties:
                   documentation_url:
                     type: string
-                    # example: 'TODO:'
+                    format: link
+                    example: <link to the current site>
                   message:
                     type: string
-                    example: Offset is not an integer value
+                    example: limit is invalid integer value
         '404':
-          description: job does not exist
+          description: Job does not exist
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobNotFoundResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerErrorResponse'
   /api/v1/jobs:
     post:
       tags:
         - jobs
       summary: Create a new job
-      description: "Enqueues a new job which will execute the source code."
+      description: "Enqueues a new job that will execute the source code."
       operationId: createJob
       requestBody:
         required: true
@@ -119,54 +170,35 @@ paths:
                     type: string
                     format: uuid
                     example: 1f9f329f-300a-43f4-8c7d-0889452e1d11
+                  output_url:
+                    type: string
+                    format: link
+                    example: 'https://example.com/api/v1/jobs/d290f1ee-6c54-4b01-90e6-d701748f0851/output'
         '400':
           description: Bad input parameters
           content:
             application/json:
               schema:
-                oneOf:
-                  - type: object
-                    properties:
-                      documentation_url:
-                        type: string
-                      message:
-                        type: string
-                        example: Language version does not exist
-                  - type: object
-                    properties:
-                      documentation_url:
-                        type: string
-                      message:
-                        type: string
-                        example: code is not provided or empty
-        '503':
-          description: Unable to enqueue job
-          content:
-            application/json:
-              schema:
                 type: object
                 properties:
+                  documentation_url:
+                    type: string
+                    example: <link to the current site>
                   message:
                     type: string
-                    example: Service temporary is unavailable, try again later
-  /api/v1/lang/versions:
-    get:
-      summary: Get available versions of language
-      description: "Returns a list of available versions of Borsch language."
-      operationId: getLanguages
-      responses:
-        '200':
-          description: Array of language versions
+                    example: source code is not provided
+        '500':
+          description: Server error
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                  format: SemVer
-                  example: 0.1.0
+                $ref: '#/components/schemas/ServerErrorResponse'
 components:
   schemas:
+    PositiveInt64:
+      type: integer
+      format: int64
+      minimum: 0
     JobItem:
       type: object
       properties:
@@ -178,6 +210,15 @@ components:
           type: string
           format: date-time
           example: 2022-09-05 00:08:29.54415+03:00
+        status:
+          type: string
+          enum:
+            - accepted
+            - rejected
+            - queued
+            - running
+            - finished
+          example: queued
         source_code:
           type: string
           example: |-
@@ -187,43 +228,65 @@ components:
           format: int64
           nullable: true
           example: 0
-        outputs_url:
+        output_url:
           type: string
           format: link
-          example: http://example.com/api/v1/job/d290f1ee-6c54-4b01-90e6-d701748f0851/outputs
-    ArrayOfJobOutputs:
-      type: array
-      items:
-        type: object
-        properties:
-          id:
-            type: number
-            format: int64
-            example: 47
-          created_at:
-            type: string
-            format: date-time
-            example: 2022-09-06T16:50:30.469195+03:00
-          job_id:
-            type: string
-            format: uuid
-            example: d290f1ee-6c54-4b01-90e6-d701748f0851
-          text:
-            type: string
-            example: Привіт, Світе!
+          example: 'https://example.com/api/v1/jobs/d290f1ee-6c54-4b01-90e6-d701748f0851/output'
+    JobOutputResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - accepted
+            - rejected
+            - queued
+            - running
+            - finished
+          example: queued
+        rows:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                format: int64
+              job_id:
+                type: string
+                format: uuid
+              text:
+                type: string
+            example:
+              - id: 1
+                job_id: d290f1ee-6c54-4b01-90e6-d701748f0851
+                text: Виконання алгоритму пошуку...
+              - id: 2
+                job_id: d290f1ee-6c54-4b01-90e6-d701748f0851
+                text: 'Результат знайдено: 123'
     JobNotFoundResponse:
       type: object
       properties:
         message:
           type: string
           example: job not found
+        documentation_url:
+          type: string
+          format: link
+          example: <link to the current site>
+    ServerErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: internal error
     CreateJobInput:
       type: object
       required:
-        - lang_v
+        - lang_version
         - source_code
       properties:
-        lang_v:
+        lang_version:
           type: string
           format: SemVer
           example: 0.1.0

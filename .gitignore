@@ -17,6 +17,7 @@ bin/
 
 # Local storages
 db.sqlite3
+postgres-data/
 
 # Configurations
 settings.local.json
