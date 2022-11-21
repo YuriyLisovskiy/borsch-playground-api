@@ -9,9 +9,9 @@
 package rmq
 
 type JobMessage struct {
-	ID          string `json:"id"`
-	LangVersion string `json:"lang_version"`
-	SourceCode  string `json:"source_code"`
+	ID            string `json:"id"`
+	LangVersion   string `json:"lang_version"`
+	SourceCodeB64 string `json:"source_code_b64"`
 }
 
 type jobResultType string

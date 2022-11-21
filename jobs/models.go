@@ -37,11 +37,11 @@ const (
 type Job struct {
 	common.Model
 
-	Code      string         `json:"source_code"`
-	Outputs   []JobOutputRow `json:"-" gorm:"foreignKey:JobID"`
-	ExitCode  *int           `json:"exit_code"`
-	OutputUrl string         `json:"output_url" gorm:"-:all"`
-	Status    JobStatus      `json:"status"`
+	SourceCodeB64 string         `json:"source_code_b64"`
+	Outputs       []JobOutputRow `json:"-" gorm:"foreignKey:JobID"`
+	ExitCode      *int           `json:"exit_code"`
+	OutputUrl     string         `json:"output_url" gorm:"-:all"`
+	Status        JobStatus      `json:"status"`
 }
 
 func (m *Job) GetOutputUrl(c *gin.Context) string {

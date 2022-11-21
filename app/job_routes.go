@@ -9,6 +9,7 @@
 package app
 
 import (
+	"encoding/base64"
 	"errors"
 	"log"
 	"net/http"
@@ -123,10 +124,10 @@ func (a *Application) createJobHandler(c *gin.Context) {
 		Model: common.Model{
 			ID: uuid.New().String(),
 		},
-		Code:     form.SourceCode,
-		Outputs:  []jobs.JobOutputRow{},
-		ExitCode: nil,
-		Status:   jobs.JobStatusAccepted,
+		SourceCodeB64: base64.StdEncoding.EncodeToString([]byte(form.SourceCode)),
+		Outputs:       []jobs.JobOutputRow{},
+		ExitCode:      nil,
+		Status:        jobs.JobStatusAccepted,
 	}
 
 	err = a.jobService.CreateJob(job)
@@ -142,9 +143,9 @@ func (a *Application) createJobHandler(c *gin.Context) {
 // publishJob pushes the job to the RabbitMQ and update its status.
 func (a *Application) publishJob(form *CreateJobForm, job *jobs.Job) {
 	jobMessage := rmq.JobMessage{
-		ID:          job.ID,
-		LangVersion: form.LangVersion,
-		SourceCode:  form.SourceCode,
+		ID:            job.ID,
+		LangVersion:   form.LangVersion,
+		SourceCodeB64: job.SourceCodeB64,
 	}
 	err := a.amqpJobService.PublishJob(&jobMessage)
 	if err != nil {
