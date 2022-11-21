@@ -221,8 +221,7 @@ components:
           example: queued
         source_code:
           type: string
-          example: |-
-            друкр("Привіт, Світе!");
+          example: 0LTRgNGD0LrRgCgi0J/RgNC40LLRltGCLCDQodCy0ZbRgtC1ISIpOw==
         exit_code:
           type: number
           format: int64
@@ -292,5 +291,4 @@ components:
           example: 0.1.0
         source_code:
           type: string
-          example: |-
-            друкр("Привіт, Світе!");
+          example: 0LTRgNGD0LrRgCgi0J/RgNC40LLRltGCLCDQodCy0ZbRgtC1ISIpOw==
