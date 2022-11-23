@@ -18,12 +18,13 @@ cd ./bin
 
 Migrate the database:
 ```shell
-./borschplayground migrate
+make goose-install
+make migrate-up
 ```
 
 Run the server:
 ```shell
-./borschplayground --address 127.0.0.1:8080
+./borschplayground --bind 127.0.0.1:8080
 ```
 
 ### API
