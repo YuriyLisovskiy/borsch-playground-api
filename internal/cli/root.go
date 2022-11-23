@@ -6,15 +6,16 @@
  * terms of the MIT license.
  */
 
-package cmd
+package cli
 
 import (
 	"os"
 
-	"borsch-playground-api/app"
-	"borsch-playground-api/jobs"
-	rmq "borsch-playground-api/rmq"
-	"borsch-playground-api/settings"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/amqp"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/db"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/server"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/settings"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +24,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:  "borsch-playground-api",
+	Use:  "github.com/YuriyLisovskiy/borsch-playground-api",
 	RunE: root,
 }
 
@@ -43,14 +44,14 @@ func root(*cobra.Command, []string) error {
 		return err
 	}
 
-	db, err := s.Database.Build()
+	database, err := db.PostgreSQLFromEnv()
 	if err != nil {
 		return err
 	}
 
-	jobService := jobs.NewJobServiceImpl(db)
-	amqpJobService := rmq.RabbitMQJobService{
-		Server:     os.Getenv(rmq.EnvRabbitMQServer),
+	jobService := jobs.NewJobServiceImpl(database)
+	amqpJobService := amqp.RabbitMQJobService{
+		Server:     os.Getenv(amqp.EnvRabbitMQServer),
 		JobService: jobService,
 	}
 	err = amqpJobService.Setup()
@@ -59,15 +60,11 @@ func root(*cobra.Command, []string) error {
 	}
 
 	defer amqpJobService.CleanUp()
-	err = amqpJobService.ConsumeJobResults()
+	err = amqpJobService.ConsumeResults()
 	if err != nil {
 		return err
 	}
 
-	a, err := app.NewApp(s, db, jobService, &amqpJobService)
-	if err != nil {
-		return err
-	}
-
-	return a.Execute(addressArg)
+	a := server.NewApplication(s, database, jobService, &amqpJobService)
+	return a.Serve(addressArg)
 }

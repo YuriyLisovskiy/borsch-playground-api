@@ -1,0 +1,8 @@
+USER=local_rest_api_user
+PORT=5432
+HOST=0.0.0.0
+PASSWORD=local-super-secret!
+DATABASE=postgres
+OPTIONS=sslmode=disable
+
+POSTGRES_URI=postgresql://$(USER):$(PASSWORD)@$(HOST):$(PORT)/$(DATABASE)?$(OPTIONS)

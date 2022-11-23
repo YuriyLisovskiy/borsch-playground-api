@@ -5,19 +5,9 @@ services:
       - .env
     build: .
     restart: on-failure
-    depends_on:
-      - migrate
     ports:
       - "8080:80"
-    command: ["./api_application", "--bind", "0.0.0.0:$PORT"]
-    networks:
-      - borsch-playground-network
-  migrate:
-    build: .
-    restart: on-failure
-    depends_on:
-      - local_postgres_database
-    command: ["./api_application", "migrate"]
+    command: ["./playground_app", "--bind", "0.0.0.0:$PORT"]
     networks:
       - borsch-playground-network
   local_postgres_database:
@@ -33,6 +23,7 @@ services:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - borsch-playground-network
+      - default
 networks:
   borsch-playground-network:
     external: true

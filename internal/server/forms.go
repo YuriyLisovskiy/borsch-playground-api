@@ -6,16 +6,9 @@
  * terms of the MIT license.
  */
 
-package main
+package server
 
-import (
-	"log"
-
-	"borsch-playground-api/cmd"
-)
-
-func main() {
-	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
-	}
+type CreateJobForm struct {
+	LangVersion string `json:"lang_version"`
+	SourceCode  string `json:"source_code"`
 }

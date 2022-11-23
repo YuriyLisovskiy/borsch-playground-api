@@ -6,7 +6,7 @@
  * terms of the MIT license.
  */
 
-package app
+package server
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	"syscall"
 	"time"
 
-	"borsch-playground-api/jobs"
-	rmq "borsch-playground-api/rmq"
-	"borsch-playground-api/settings"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/amqp"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/settings"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -28,24 +28,23 @@ import (
 type Application struct {
 	settings       *settings.Settings
 	db             *gorm.DB
-	jobService     jobs.JobService
-	amqpJobService rmq.AMQPJobService
+	jobService     jobs.JobRepository
+	amqpJobService amqp.JobService
 }
 
-func NewApp(
+func NewApplication(
 	s *settings.Settings,
 	db *gorm.DB,
-	jobService jobs.JobService,
-	amqpJobService rmq.AMQPJobService,
-) (*Application, error) {
+	jobService jobs.JobRepository,
+	amqpJobService amqp.JobService,
+) *Application {
 	gin.SetMode(s.GinMode)
-	app := &Application{
+	return &Application{
 		settings:       s,
 		db:             db,
 		jobService:     jobService,
 		amqpJobService: amqpJobService,
 	}
-	return app, nil
 }
 
 func (a *Application) buildRouter() *gin.Engine {
@@ -54,7 +53,7 @@ func (a *Application) buildRouter() *gin.Engine {
 	return router
 }
 
-func (a *Application) Execute(addr string) error {
+func (a *Application) Serve(addr string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

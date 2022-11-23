@@ -6,7 +6,7 @@
  * terms of the MIT license.
  */
 
-package app
+package server
 
 import (
 	"encoding/base64"
@@ -16,9 +16,8 @@ import (
 	"strconv"
 	"strings"
 
-	"borsch-playground-api/common"
-	"borsch-playground-api/jobs"
-	rmq "borsch-playground-api/rmq"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
+	"github.com/YuriyLisovskiy/borsch-runner-service/pkg/messages"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -121,9 +120,7 @@ func (a *Application) createJobHandler(c *gin.Context) {
 	}
 
 	job := &jobs.Job{
-		Model: common.Model{
-			ID: uuid.New().String(),
-		},
+		ID:            uuid.New().String(),
 		SourceCodeB64: base64.StdEncoding.EncodeToString([]byte(form.SourceCode)),
 		Outputs:       []jobs.JobOutputRow{},
 		ExitCode:      nil,
@@ -142,12 +139,12 @@ func (a *Application) createJobHandler(c *gin.Context) {
 
 // publishJob pushes the job to the RabbitMQ and update its status.
 func (a *Application) publishJob(form *CreateJobForm, job *jobs.Job) {
-	jobMessage := rmq.JobMessage{
+	jobMessage := messages.JobMessage{
 		ID:            job.ID,
 		LangVersion:   form.LangVersion,
 		SourceCodeB64: job.SourceCodeB64,
 	}
-	err := a.amqpJobService.PublishJob(&jobMessage)
+	err := a.amqpJobService.Publish(&jobMessage)
 	if err != nil {
 		log.Printf("Failed to publish job: %v", err)
 		job.Status = jobs.JobStatusRejected

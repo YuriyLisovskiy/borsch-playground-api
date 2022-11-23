@@ -11,17 +11,17 @@ package jobs
 import (
 	"fmt"
 	"strings"
+	"time"
 
-	"borsch-playground-api/common"
 	"github.com/gin-gonic/gin"
 )
 
 type JobOutputRow struct {
-	common.Model
-
-	ID    uint   `json:"id" gorm:"primaryKey;autoIncrement"`
-	Text  string `json:"text"`
-	JobID string `json:"job_id"`
+	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"-"`
+	Text      string    `json:"text"`
+	JobID     string    `json:"job_id"`
 }
 
 type JobStatus string
@@ -35,13 +35,15 @@ const (
 )
 
 type Job struct {
-	common.Model
-
-	SourceCodeB64 string         `json:"source_code_b64"`
-	Outputs       []JobOutputRow `json:"-" gorm:"foreignKey:JobID"`
-	ExitCode      *int           `json:"exit_code"`
-	OutputUrl     string         `json:"output_url" gorm:"-:all"`
+	ID            string         `json:"id" gorm:"primaryKey"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"-"`
 	Status        JobStatus      `json:"status"`
+	SourceCodeB64 string         `json:"source_code_b64"`
+	ExitCode      *int           `json:"exit_code"`
+	Outputs       []JobOutputRow `json:"-" gorm:"foreignKey:JobID"`
+
+	OutputUrl string `json:"output_url" gorm:"-:all"`
 }
 
 func (m *Job) GetOutputUrl(c *gin.Context) string {

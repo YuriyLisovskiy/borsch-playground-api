@@ -24,7 +24,6 @@ type Settings struct {
 	ShutdownTimeoutSec  time.Duration `json:"shutdown_timeout_sec"`
 	BorschVersions      []string      `json:"borsch_versions"`
 	ApiDocumentationUrl string        `json:"api_documentation_url"`
-	Database            *Database     `json:"database"`
 }
 
 func (s *Settings) PerformChecks() error {

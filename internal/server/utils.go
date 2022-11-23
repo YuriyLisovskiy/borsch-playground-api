@@ -6,7 +6,7 @@
  * terms of the MIT license.
  */
 
-package app
+package server
 
 import (
 	"log"

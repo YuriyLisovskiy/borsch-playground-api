@@ -6,9 +6,16 @@
  * terms of the MIT license.
  */
 
-package app
+package main
 
-type CreateJobForm struct {
-	LangVersion string `json:"lang_version"`
-	SourceCode  string `json:"source_code"`
+import (
+	"log"
+
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/cli"
+)
+
+func main() {
+	if err := cli.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }

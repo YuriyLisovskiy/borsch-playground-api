@@ -6,7 +6,7 @@
  * terms of the MIT license.
  */
 
-package rmq
+package amqp
 
 import (
 	"context"
@@ -18,13 +18,14 @@ import (
 	"strconv"
 	"time"
 
-	"borsch-playground-api/jobs"
+	jobs2 "github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
+	msg "github.com/YuriyLisovskiy/borsch-runner-service/pkg/messages"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type AMQPJobService interface {
-	ConsumeJobResults() error
-	PublishJob(job *JobMessage) error
+type JobService interface {
+	ConsumeResults() error
+	Publish(job *msg.JobMessage) error
 }
 
 const (
@@ -35,7 +36,7 @@ const (
 
 type RabbitMQJobService struct {
 	Server     string
-	JobService jobs.JobService
+	JobService jobs2.JobRepository
 
 	connection       *amqp.Connection
 	jobChannel       *amqp.Channel
@@ -70,7 +71,7 @@ func (mq *RabbitMQJobService) CleanUp() {
 	logOrNil(mq.jobResultChannel.Close())
 }
 
-func (mq *RabbitMQJobService) ConsumeJobResults() error {
+func (mq *RabbitMQJobService) ConsumeResults() error {
 	messages, err := mq.jobResultChannel.Consume(mq.jobResultQueue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("failed to register a consumer: %v", err)
@@ -80,7 +81,7 @@ func (mq *RabbitMQJobService) ConsumeJobResults() error {
 	return nil
 }
 
-func (mq *RabbitMQJobService) PublishJob(job *JobMessage) error {
+func (mq *RabbitMQJobService) Publish(job *msg.JobMessage) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -109,7 +110,7 @@ func (mq *RabbitMQJobService) PublishJob(job *JobMessage) error {
 }
 
 func (mq *RabbitMQJobService) processJobResult(data []byte) error {
-	jobResult := JobResultMessage{}
+	jobResult := msg.JobResultMessage{}
 	err := json.Unmarshal(data, &jobResult)
 	if err != nil {
 		return err
@@ -121,13 +122,13 @@ func (mq *RabbitMQJobService) processJobResult(data []byte) error {
 	}
 
 	switch jobResult.Type {
-	case jobResultLog:
-		job.Outputs = append(job.Outputs, jobs.JobOutputRow{Text: jobResult.Data})
-		job.Status = jobs.JobStatusRunning
-	case jobResultExit:
+	case msg.JobResultLog:
+		job.Outputs = append(job.Outputs, jobs2.JobOutputRow{Text: jobResult.Data})
+		job.Status = jobs2.JobStatusRunning
+	case msg.JobResultExit:
 		job.ExitCode = new(int)
 		*job.ExitCode, err = strconv.Atoi(jobResult.Data)
-		job.Status = jobs.JobStatusFinished
+		job.Status = jobs2.JobStatusFinished
 	default:
 		return fmt.Errorf("invalid type of job result: %s", jobResult.Type)
 	}
