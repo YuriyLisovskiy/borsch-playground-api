@@ -20,20 +20,19 @@ import (
 
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/amqp"
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
-	"github.com/YuriyLisovskiy/borsch-playground-api/internal/settings"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type Application struct {
-	settings       *settings.Settings
+	settings       *Settings
 	db             *gorm.DB
 	jobService     jobs.JobRepository
 	amqpJobService amqp.JobService
 }
 
 func NewApplication(
-	s *settings.Settings,
+	s *Settings,
 	db *gorm.DB,
 	jobService jobs.JobRepository,
 	amqpJobService amqp.JobService,

@@ -1,8 +1,8 @@
-USER=local_rest_api_user
-PORT=5432
-HOST=0.0.0.0
-PASSWORD=local-super-secret!
-DATABASE=postgres
-OPTIONS=sslmode=disable
+DB_USER=local_rest_api_user
+DB_PORT=5432
+DB_HOST=0.0.0.0
+DB_PASSWORD=local-super-secret!
+DB_DATABASE=postgres
+DB_OPTIONS=sslmode=disable
 
-POSTGRES_URI=postgresql://$(USER):$(PASSWORD)@$(HOST):$(PORT)/$(DATABASE)?$(OPTIONS)
+POSTGRES_URI=postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_DATABASE)?$(DB_OPTIONS)

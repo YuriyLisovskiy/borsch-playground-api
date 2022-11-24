@@ -25,5 +25,5 @@ func (a *Application) addV1Routes(r *gin.Engine) {
 }
 
 func (a *Application) getLanguageVersionsHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, a.settings.BorschVersions)
+	c.JSON(http.StatusOK, a.settings.AvailableInterpreters)
 }

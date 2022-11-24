@@ -109,7 +109,7 @@ func (a *Application) createJobHandler(c *gin.Context) {
 		return
 	}
 
-	if !stringArrayContains(a.settings.BorschVersions, form.LangVersion) {
+	if !stringArrayContains(a.settings.AvailableInterpreters, form.LangVersion) {
 		a.sendJsonError(c, http.StatusBadRequest, errors.New("language version does not exist"))
 		return
 	}

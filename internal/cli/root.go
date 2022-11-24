@@ -15,7 +15,6 @@ import (
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/db"
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/server"
-	"github.com/YuriyLisovskiy/borsch-playground-api/internal/settings"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +38,7 @@ func init() {
 }
 
 func root(*cobra.Command, []string) error {
-	s, err := settings.Load()
+	s, err := server.LoadSettingsFromEnv()
 	if err != nil {
 		return err
 	}

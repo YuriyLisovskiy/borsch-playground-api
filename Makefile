@@ -3,7 +3,7 @@
 migration_dir := ./migrations
 migrations_table := schema_migrations
 
-stage := $(or $(YAAWS_STAGE), local)
+stage := $(or $(ENV_STAGE), local)
 
 include Makefile.$(stage)
 
