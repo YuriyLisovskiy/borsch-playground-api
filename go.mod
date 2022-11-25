@@ -1,6 +1,6 @@
 module github.com/YuriyLisovskiy/borsch-playground-api
 
-go 1.17
+go 1.19
 
 require (
 	github.com/YuriyLisovskiy/borsch-runner-service/pkg v0.1.0
@@ -9,7 +9,6 @@ require (
 	github.com/rabbitmq/amqp091-go v1.5.0
 	github.com/spf13/cobra v1.6.1
 	gorm.io/driver/postgres v1.4.5
-	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.2
 )
 
@@ -35,7 +34,6 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect

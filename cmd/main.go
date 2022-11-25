@@ -6,9 +6,10 @@
  * terms of the MIT license.
  */
 
-package cli
+package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/amqp"
@@ -23,12 +24,14 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:  "github.com/YuriyLisovskiy/borsch-playground-api",
-	RunE: root,
+	Use:  "borsch-playground-api",
+	RunE: runRoot,
 }
 
-func Execute() error {
-	return rootCmd.Execute()
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {
@@ -37,7 +40,7 @@ func init() {
 	)
 }
 
-func root(*cobra.Command, []string) error {
+func runRoot(*cobra.Command, []string) error {
 	s, err := server.LoadSettingsFromEnv()
 	if err != nil {
 		return err
