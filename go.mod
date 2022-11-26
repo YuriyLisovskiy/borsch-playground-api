@@ -3,7 +3,7 @@ module github.com/YuriyLisovskiy/borsch-playground-api
 go 1.19
 
 require (
-	github.com/YuriyLisovskiy/borsch-runner-service/pkg v0.1.0
+	github.com/YuriyLisovskiy/borsch-runner-service/pkg v0.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/google/uuid v1.3.0
 	github.com/rabbitmq/amqp091-go v1.5.0

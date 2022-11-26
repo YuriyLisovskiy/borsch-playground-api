@@ -15,10 +15,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
-	jobs2 "github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
+	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
 	msg "github.com/YuriyLisovskiy/borsch-runner-service/pkg/messages"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -36,7 +35,7 @@ const (
 
 type RabbitMQJobService struct {
 	Server     string
-	JobService jobs2.JobRepository
+	JobService jobs.JobRepository
 
 	connection       *amqp.Connection
 	jobChannel       *amqp.Channel
@@ -121,16 +120,33 @@ func (mq *RabbitMQJobService) processJobResult(data []byte) error {
 		return err
 	}
 
+	if jobResult.Type == msg.JobResultLog {
+		log.Printf("[%s] LOG\n", jobResult.ID)
+		return mq.JobService.CreateOutput(
+			&jobs.JobOutputRow{
+				Text:  jobResult.Data,
+				JobID: jobResult.ID,
+			},
+		)
+	}
+
 	switch jobResult.Type {
-	case msg.JobResultLog:
-		job.Outputs = append(job.Outputs, jobs2.JobOutputRow{Text: jobResult.Data})
-		job.Status = jobs2.JobStatusRunning
+	case msg.JobResultStart:
+		log.Printf("[%s] STARTED\n", jobResult.ID)
+		job.Status = jobs.JobStatusRunning
 	case msg.JobResultExit:
+		log.Printf("[%s] EXIT\n", jobResult.ID)
 		job.ExitCode = new(int)
-		*job.ExitCode, err = strconv.Atoi(jobResult.Data)
-		job.Status = jobs2.JobStatusFinished
-	default:
-		return fmt.Errorf("invalid type of job result: %s", jobResult.Type)
+		*job.ExitCode = *jobResult.ExitCode
+		job.Status = jobs.JobStatusFinished
+		job.FinishedAt = new(time.Time)
+		*job.FinishedAt = time.Now().UTC()
+	case msg.JobResultError:
+		log.Printf("[%s] ERROR\n", jobResult.ID)
+		job.Message = jobResult.Data
+		job.Status = jobs.JobStatusFinished
+		job.FinishedAt = new(time.Time)
+		*job.FinishedAt = time.Now().UTC()
 	}
 
 	return mq.JobService.UpdateJob(job)

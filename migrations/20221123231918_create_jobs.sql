@@ -4,6 +4,7 @@ CREATE TABLE jobs (
     id              UUID       NOT NULL,
     created_at      TIMESTAMP  NOT NULL,
     updated_at      TIMESTAMP  NOT NULL,
+    finished_at     TIMESTAMP  NULL,
     source_code_b64 TEXT       NOT NULL,
     status          VARCHAR(8) NOT NULL,
     exit_code       INT        NULL,
@@ -13,7 +14,6 @@ CREATE TABLE jobs (
 CREATE TABLE job_output_rows (
     id         SERIAL    NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
     text       TEXT      NOT NULL,
     job_id     UUID      NOT NULL,
 

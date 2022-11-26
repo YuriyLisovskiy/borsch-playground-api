@@ -15,6 +15,7 @@ type JobRepository interface {
 	CreateJob(job *Job) error
 	UpdateJob(job *Job) error
 	GetJobOutputs(jobId string, offset, limit int) ([]JobOutputRow, error)
+	CreateOutput(output *JobOutputRow) error
 }
 
 type JobRepositoryImpl struct {
@@ -35,7 +36,7 @@ func (js *JobRepositoryImpl) CreateJob(job *Job) error {
 }
 
 func (js *JobRepositoryImpl) UpdateJob(job *Job) error {
-	return js.db.Save(&job).Error
+	return js.db.Save(job).Error
 }
 
 func (js *JobRepositoryImpl) GetJobOutputs(jobId string, offset, limit int) ([]JobOutputRow, error) {
@@ -47,4 +48,8 @@ func (js *JobRepositoryImpl) GetJobOutputs(jobId string, offset, limit int) ([]J
 	var outputs []JobOutputRow
 	err = js.db.Offset(offset).Limit(limit).Find(&outputs, "job_id = ?", jobId).Error
 	return outputs, err
+}
+
+func (js *JobRepositoryImpl) CreateOutput(output *JobOutputRow) error {
+	return js.db.Create(output).Error
 }

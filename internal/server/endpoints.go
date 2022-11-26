@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
 	"github.com/YuriyLisovskiy/borsch-runner-service/pkg/messages"
@@ -75,14 +76,18 @@ func (a *Application) getJobOutputHandler(c *gin.Context) {
 	formatParam := c.DefaultQuery("format", "json")
 	switch strings.ToLower(formatParam) {
 	case "json":
-		c.JSON(http.StatusOK, gin.H{"status": job.Status, "rows": outputs})
+		c.JSON(http.StatusOK, gin.H{"status": job.Status, "rows": outputs, "message": job.Message})
 	case "txt":
-		outputLen := len(outputs)
 		outputString := ""
-		for i, output := range outputs {
-			outputString += output.Text
-			if i < outputLen-1 {
-				outputString += "\n"
+		if job.Message != "" {
+			outputString = job.Message
+		} else {
+			outputLen := len(outputs)
+			for i, output := range outputs {
+				outputString += output.Text
+				if i < outputLen-1 {
+					outputString += "\n"
+				}
 			}
 		}
 
@@ -122,7 +127,6 @@ func (a *Application) createJobHandler(c *gin.Context) {
 	job := &jobs.Job{
 		ID:            uuid.New().String(),
 		SourceCodeB64: base64.StdEncoding.EncodeToString([]byte(form.SourceCode)),
-		Outputs:       []jobs.JobOutputRow{},
 		ExitCode:      nil,
 		Status:        jobs.JobStatusAccepted,
 	}
@@ -143,6 +147,7 @@ func (a *Application) publishJob(form *CreateJobForm, job *jobs.Job) {
 		ID:            job.ID,
 		LangVersion:   form.LangVersion,
 		SourceCodeB64: job.SourceCodeB64,
+		Timeout:       1 * time.Second, // TODO: replace with user.quota
 	}
 	err := a.amqpJobService.Publish(&jobMessage)
 	if err != nil {

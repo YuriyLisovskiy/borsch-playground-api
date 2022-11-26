@@ -19,7 +19,6 @@ import (
 type JobOutputRow struct {
 	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"-"`
 	Text      string    `json:"text"`
 	JobID     string    `json:"job_id"`
 }
@@ -35,13 +34,14 @@ const (
 )
 
 type Job struct {
-	ID            string         `json:"id" gorm:"primaryKey"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"-"`
-	Status        JobStatus      `json:"status"`
-	SourceCodeB64 string         `json:"source_code_b64"`
-	ExitCode      *int           `json:"exit_code"`
-	Outputs       []JobOutputRow `json:"-" gorm:"foreignKey:JobID"`
+	ID            string     `json:"id" gorm:"primaryKey"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"-"`
+	FinishedAt    *time.Time `json:"finished_at"`
+	Status        JobStatus  `json:"status"`
+	SourceCodeB64 string     `json:"source_code_b64"`
+	ExitCode      *int       `json:"exit_code"`
+	Message       string     `json:"message"`
 
 	OutputUrl string `json:"output_url" gorm:"-:all"`
 }
