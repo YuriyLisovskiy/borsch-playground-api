@@ -28,13 +28,3 @@ func (a *Application) sendJsonError(c *gin.Context, status int, err error) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
 	}
 }
-
-func stringArrayContains(array []string, item string) bool {
-	for _, elem := range array {
-		if elem == item {
-			return true
-		}
-	}
-
-	return false
-}

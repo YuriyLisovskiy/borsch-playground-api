@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 type JobOutputRow struct {
@@ -46,11 +44,10 @@ type Job struct {
 	OutputUrl string `json:"output_url" gorm:"-:all"`
 }
 
-func (m *Job) GetOutputUrl(c *gin.Context) string {
-	rURI := c.Request.RequestURI
-	if !strings.HasSuffix(rURI, m.ID) {
-		rURI += m.ID
+func (m *Job) GetOutputUrl(host, uri string) string {
+	if !strings.HasSuffix(uri, m.ID) {
+		uri += m.ID
 	}
 
-	return fmt.Sprintf("%s://%s%s/output", "http", c.Request.Host, rURI)
+	return fmt.Sprintf("%s://%s%s/output", "http", host, uri)
 }

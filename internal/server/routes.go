@@ -21,6 +21,7 @@ func (a *Application) addV1Routes(r *gin.Engine) {
 	jobsRouter := apiV1.Group("/jobs")
 	jobsRouter.GET("/:id", a.getJobHandler)
 	jobsRouter.GET("/:id/output", a.getJobOutputHandler)
+	jobsRouter.GET("/:id/output.txt", a.getJobOutputAsTxtHandler)
 	jobsRouter.POST("/", a.createJobHandler)
 }
 

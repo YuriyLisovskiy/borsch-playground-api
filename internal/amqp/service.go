@@ -34,8 +34,8 @@ const (
 )
 
 type RabbitMQJobService struct {
-	Server     string
-	JobService jobs.JobRepository
+	Server        string
+	JobRepository jobs.JobRepository
 
 	connection       *amqp.Connection
 	jobChannel       *amqp.Channel
@@ -115,14 +115,13 @@ func (mq *RabbitMQJobService) processJobResult(data []byte) error {
 		return err
 	}
 
-	job, err := mq.JobService.GetJob(jobResult.ID)
+	job, err := mq.JobRepository.GetJob(jobResult.ID)
 	if err != nil {
 		return err
 	}
 
 	if jobResult.Type == msg.JobResultLog {
-		log.Printf("[%s] LOG\n", jobResult.ID)
-		return mq.JobService.CreateOutput(
+		return mq.JobRepository.CreateOutput(
 			&jobs.JobOutputRow{
 				Text:  jobResult.Data,
 				JobID: jobResult.ID,
@@ -132,24 +131,21 @@ func (mq *RabbitMQJobService) processJobResult(data []byte) error {
 
 	switch jobResult.Type {
 	case msg.JobResultStart:
-		log.Printf("[%s] STARTED\n", jobResult.ID)
 		job.Status = jobs.JobStatusRunning
 	case msg.JobResultExit:
-		log.Printf("[%s] EXIT\n", jobResult.ID)
 		job.ExitCode = new(int)
 		*job.ExitCode = *jobResult.ExitCode
 		job.Status = jobs.JobStatusFinished
 		job.FinishedAt = new(time.Time)
 		*job.FinishedAt = time.Now().UTC()
 	case msg.JobResultError:
-		log.Printf("[%s] ERROR\n", jobResult.ID)
 		job.Message = jobResult.Data
 		job.Status = jobs.JobStatusFinished
 		job.FinishedAt = new(time.Time)
 		*job.FinishedAt = time.Now().UTC()
 	}
 
-	return mq.JobService.UpdateJob(job)
+	return mq.JobRepository.UpdateJob(job)
 }
 
 func (mq *RabbitMQJobService) processMessagesAsync(messages <-chan amqp.Delivery) {

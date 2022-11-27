@@ -51,10 +51,10 @@ func runRoot(*cobra.Command, []string) error {
 		return err
 	}
 
-	jobService := jobs.NewJobServiceImpl(database)
+	jobRepository := jobs.NewJobRepositoryImpl(database)
 	amqpJobService := amqp.RabbitMQJobService{
-		Server:     os.Getenv(amqp.EnvRabbitMQServer),
-		JobService: jobService,
+		Server:        os.Getenv(amqp.EnvRabbitMQServer),
+		JobRepository: jobRepository,
 	}
 	err = amqpJobService.Setup()
 	if err != nil {
@@ -67,6 +67,7 @@ func runRoot(*cobra.Command, []string) error {
 		return err
 	}
 
-	a := server.NewApplication(s, database, jobService, &amqpJobService)
+	jobService := jobs.NewJobServiceImpl(jobRepository, &amqpJobService)
+	a := server.NewApplication(s, database, jobRepository, jobService)
 	return a.Serve(addressArg)
 }

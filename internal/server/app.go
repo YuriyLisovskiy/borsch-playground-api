@@ -18,31 +18,30 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/YuriyLisovskiy/borsch-playground-api/internal/amqp"
 	"github.com/YuriyLisovskiy/borsch-playground-api/internal/jobs"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type Application struct {
-	settings       *Settings
-	db             *gorm.DB
-	jobService     jobs.JobRepository
-	amqpJobService amqp.JobService
+	settings      *Settings
+	db            *gorm.DB
+	jobRepository jobs.JobRepository
+	jobService    jobs.JobService
 }
 
 func NewApplication(
 	s *Settings,
 	db *gorm.DB,
-	jobService jobs.JobRepository,
-	amqpJobService amqp.JobService,
+	jobRepository jobs.JobRepository,
+	jobService jobs.JobService,
 ) *Application {
 	gin.SetMode(s.GinMode)
 	return &Application{
-		settings:       s,
-		db:             db,
-		jobService:     jobService,
-		amqpJobService: amqpJobService,
+		settings:      s,
+		db:            db,
+		jobRepository: jobRepository,
+		jobService:    jobService,
 	}
 }
 
